@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: inbox
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/inbox}
+    username: ${DB_USER:inbox}
+    password: ${DB_PASSWORD:inbox}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+inbox:
+  webhook:
+    url: ${WEBHOOK_URL:https://httpbin.org/post}
+    pool-size: ${WEBHOOK_POOL_SIZE:4}
