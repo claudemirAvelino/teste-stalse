@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: inbox-db
+    environment:
+      POSTGRES_DB: inbox
+      POSTGRES_USER: inbox
+      POSTGRES_PASSWORD: inbox
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - inbox-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inbox -d inbox"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: inbox-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://db:5432/inbox
+      DB_USER: inbox
+      DB_PASSWORD: inbox
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  inbox-db-data:
