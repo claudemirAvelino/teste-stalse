@@ -5,6 +5,8 @@ import com.stalse.inbox.domain.ticket.Priority;
 import com.stalse.inbox.domain.ticket.Ticket;
 import com.stalse.inbox.domain.ticket.TicketNotFoundException;
 import com.stalse.inbox.domain.ticket.TicketStatus;
+import com.stalse.inbox.domain.ticket.TicketTriggeredEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +19,16 @@ public class UpdateTicketUseCase {
 
     private final TicketRepository repository;
     private final Clock clock;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public UpdateTicketUseCase(TicketRepository repository, Clock clock) {
+    public UpdateTicketUseCase(
+            TicketRepository repository,
+            Clock clock,
+            ApplicationEventPublisher eventPublisher
+    ) {
         this.repository = repository;
         this.clock = clock;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -29,14 +37,30 @@ public class UpdateTicketUseCase {
                 .orElseThrow(() -> new TicketNotFoundException(id));
 
         Instant now = Instant.now(clock);
-        boolean changed = false;
-        if (newStatus != null) {
-            changed |= ticket.changeStatus(newStatus, now);
-        }
-        if (newPriority != null) {
-            changed |= ticket.changePriority(newPriority, now);
+        boolean statusChanged = newStatus != null && ticket.changeStatus(newStatus, now);
+        boolean priorityChanged = newPriority != null && ticket.changePriority(newPriority, now);
+
+        if (!statusChanged && !priorityChanged) {
+            return ticket;
         }
 
-        return changed ? repository.save(ticket) : ticket;
+        Ticket saved = repository.save(ticket);
+
+        boolean triggersWebhook =
+                (statusChanged && newStatus.triggersWebhook()) ||
+                (priorityChanged && newPriority.triggersWebhook());
+
+        if (triggersWebhook) {
+            eventPublisher.publishEvent(new TicketTriggeredEvent(
+                    saved.getId(),
+                    saved.getCustomerName(),
+                    saved.getSubject(),
+                    saved.getStatus(),
+                    saved.getPriority(),
+                    now
+            ));
+        }
+
+        return saved;
     }
 }
