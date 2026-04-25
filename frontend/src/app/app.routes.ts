@@ -6,5 +6,10 @@ export const routes: Routes = [
     path: 'tickets',
     loadComponent: () =>
       import('./features/tickets/list/tickets-list.page').then((m) => m.TicketsListPage)
+  },
+  {
+    path: 'tickets/:id',
+    loadComponent: () =>
+      import('./features/tickets/detail/ticket-detail.page').then((m) => m.TicketDetailPage)
   }
 ];
