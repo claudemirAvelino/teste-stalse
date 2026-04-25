@@ -32,7 +32,7 @@ public class ComputeMetricsUseCase {
     }
 
     public Metrics execute(int days) {
-        int safeDays = Math.min(MAX_DAYS, Math.max(1, days == 0 ? DEFAULT_DAYS : days));
+        int safeDays = days <= 0 ? DEFAULT_DAYS : Math.min(MAX_DAYS, days);
         LocalDate today = LocalDate.ofInstant(Instant.now(clock), ZoneOffset.UTC);
         LocalDate startDay = today.minusDays(safeDays - 1L);
         Instant since = startDay.atStartOfDay(ZoneOffset.UTC).toInstant();
