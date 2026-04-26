@@ -80,10 +80,13 @@ export class TicketDetailPage {
   readonly priorities = TICKET_PRIORITIES;
 
   constructor() {
-    effect(() => {
-      const id = this.id();
-      this.load(id);
-    });
+    effect(
+      () => {
+        const id = this.id();
+        this.load(id);
+      },
+      { allowSignalWrites: true }
+    );
   }
 
   statusLabel(status: TicketStatus): string {
