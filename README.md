@@ -35,6 +35,7 @@ Serviços:
 
 | Serviço  | URL                              | Credenciais                         |
 |----------|----------------------------------|-------------------------------------|
+| Frontend | http://localhost:4200            | —                                   |
 | Backend  | http://localhost:8080            | —                                   |
 | Health   | http://localhost:8080/actuator/health | —                              |
 | Postgres | localhost:5432                   | db: `inbox`, user: `inbox`, pass: `inbox` |
@@ -45,10 +46,10 @@ Para parar e apagar o volume do banco:
 docker compose down -v
 ```
 
-Se as portas `8080` ou `5432` estiverem ocupadas no seu host, sobrescreva:
+Se as portas `4200`, `8080` ou `5432` estiverem ocupadas no seu host, sobrescreva:
 
 ```bash
-BACKEND_PORT=18080 DB_PORT=15432 docker compose up --build
+FRONTEND_PORT=14200 BACKEND_PORT=18080 DB_PORT=15432 docker compose up --build
 ```
 
 ### Sem Docker
